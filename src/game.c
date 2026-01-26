@@ -2,14 +2,16 @@
 #include "config.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
+#include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #define unpack_color(color) (color.r), (color.g), (color.b), (color.a)
 
 bool game_init(GameContext* GC) {
-        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
                 fprintf(stderr, "SDL_Init error: %s\n", SDL_GetError());
                 return false;
         }
@@ -49,16 +51,24 @@ bool game_init(GameContext* GC) {
         // Setting up virtual resolution
         SDL_RenderSetLogicalSize(GC->renderer, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         SDL_RenderSetIntegerScale(GC->renderer, SDL_TRUE);
-
         return true;
 }
 
 void game_handle_events(GameContext* GC) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-                if (event.type == SDL_QUIT) {
+                switch (event.type) {
+                        case SDL_QUIT:
                         GC->running = false;
-                        return;
+                        break;
+
+                        case SDL_KEYDOWN:
+                        switch (event.key.keysym.sym) {
+                                case SDLK_ESCAPE:
+                                GC->running = false;
+                                break;
+                        }
+                        break;
                 }
         }
 }
@@ -67,9 +77,18 @@ void game_update(GameContext* GC) {}
 
 void game_render(GameContext* GC) {
         if (GC->redraw) {
-                SDL_SetRenderDrawColor(GC->renderer, 255, 255, 255, 255);
+                // 1. Clear to BLACK (this paints the bars)
+                SDL_SetRenderDrawColor(GC->renderer, 0, 0, 0, 255);
                 SDL_RenderClear(GC->renderer);
 
+                // 2. Draw your game in RED (logical space)
+                if (DEBUG) {
+                        SDL_SetRenderDrawColor(GC->renderer, 255, 0, 0, 255);
+                }
+                SDL_Rect r = { 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT };
+                SDL_RenderFillRect(GC->renderer, &r);
+
+                // 3. Present the modified renderer
                 SDL_RenderPresent(GC->renderer);
                 GC->redraw = false;
         }
