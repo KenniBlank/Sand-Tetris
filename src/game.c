@@ -98,6 +98,7 @@ bool game_init(GameContext* GC) {
         GD->gameOver = false;
         GD->level = 0;
         GD->score = 0;
+
         for (int i = 0; i < GAME_HEIGHT; i++) {
                 for (int j = 0; j < GAME_HEIGHT; j++) {
                         GD->colorGrid[i][j] = COLOR_NONE;
@@ -184,18 +185,28 @@ static void renderSandBlock(SDL_Renderer* renderer, SandBlock* SB) {
 
 static void gameRenderDebug(SDL_Renderer* renderer) {
         if (!DEBUG) return;
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, unpack_color(enumToColor(COLOR_RED)));
         SDL_Rect r = { 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT };
         SDL_RenderDrawRect(renderer, &r);
 
         r.w = (r.w / 3) * 2;
         SDL_RenderDrawRect(renderer, &r);
 
-        r.w = GAME_WIDTH;
-        r.h = GAME_HEIGHT;
-        r.x = GAME_POS_X;
-        r.y = GAME_POS_Y;
+        r.x = GAME_POS_X - 1;
+        r.y = GAME_POS_Y - 1;
+        r.w = GAME_WIDTH + 2;
+        r.h = GAME_HEIGHT + 2;
         SDL_RenderDrawRect(renderer, &r);
+}
+
+static void renderAllParticles(SDL_Renderer* renderer, int colorGrid[GAME_HEIGHT][GAME_WIDTH]) {
+        // TODO: Optimize this!
+        for (int y = 0; y < GAME_HEIGHT; y++) {
+                for (int x = 0; x < GAME_WIDTH; x++) {
+                        SDL_SetRenderDrawColor(renderer, unpack_color(enumToColor(colorGrid[y][x])));
+                        SDL_RenderDrawPoint(renderer, GAME_POS_X + x, GAME_POS_Y + y);
+                }
+        }
 }
 
 void game_render(GameContext* GC) {
@@ -204,6 +215,8 @@ void game_render(GameContext* GC) {
         SDL_RenderClear(GC->renderer);
 
         gameRenderDebug(GC->renderer);
+
+        renderAllParticles(GC->renderer, GC->gameData.colorGrid);
         renderSandBlock(GC->renderer, &SimulationBlock);
 
         // Display modified renderer

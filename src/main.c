@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-int main() {
+int main(void) {
         GameContext GC;
         if (!game_init(&GC)) {
                 return 1;
