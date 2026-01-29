@@ -42,8 +42,6 @@ int main() {
                                 fps_timer = current_time;
                         }
                 }
-
-                GC.redraw = true; // TODO!
         } while (GC.running);
 
         game_cleanup(&GC);

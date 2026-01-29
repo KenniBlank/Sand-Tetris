@@ -9,7 +9,8 @@ typedef enum {
         COLOR_RED,
         COLOR_GREEN,
         COLOR_BLUE,
-        COLOR_COUNT
+        COLOR_COUNT,
+        COLOR_NONE // Special Type!
 } ColorCode;
 
 struct Tetromino {
@@ -44,7 +45,7 @@ typedef struct {
 typedef struct {
         // Data on all things needed for game to function
         unsigned score, level;
-        uint8_t colorGrid[GAME_HEIGHT][GAME_WIDTH]; // Store color code only for all pixels on game screen (After blocks converted to sand)
+        int colorGrid[GAME_HEIGHT][GAME_WIDTH]; // Store color code only for all pixels on game screen (After blocks converted to sand)
 
         TetrominoCollection tetrominoCollection; // Total Tetromino type in game collection!
 
@@ -66,9 +67,6 @@ typedef struct {
 
         // Gamedata: gameOver? score, level, sanddata, which tetromino next?, etc
         GameData gameData;
-
-        // Redraw or not!
-        bool redraw;
 } GameContext;
 
 bool game_init(GameContext*);

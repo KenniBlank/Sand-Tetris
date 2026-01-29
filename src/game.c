@@ -1,5 +1,8 @@
 #include "game.h"
 #include "config.h"
+#include <SDL2/SDL_pixels.h>
+#include <SDL2/SDL_stdinc.h>
+#include <stdint.h>
 #include <time.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_blendmode.h>
@@ -16,6 +19,17 @@
 #define randColor() (rand() % COLOR_COUNT)
 #define randRotation() (rand() % 4) // 4 rotations total so MAGIC NUMBER
 
+// Temporary, only for testing
+SandBlock SimulationBlock = {
+        .x = (GAME_POS_X + GAME_WIDTH - PARTICLE_COUNT_IN_BLOCK_COLUMN) / 2.0f,
+        .y = GAME_POS_Y + GAME_PADDING,
+        .color = COLOR_GREEN,
+        .velY = GRAVITY
+};
+
+// Return Color for colorcode
+static SDL_Color enumToColor(ColorCode CC);
+
 // One time Function
 static inline void InitializeTetriminoCollection(TetrominoCollection* TC);
 static inline void CleanUpTetriminoCollection(TetrominoCollection* TC);
@@ -24,14 +38,13 @@ static inline void CleanUpTetriminoCollection(TetrominoCollection* TC);
 // For currentTetrimino once in init
 // For every nextTetrimino determination
 static void InitializeTetriminoData(TetrominoCollection* TC, TetrominoData* TD, unsigned x, unsigned y) {
+        TD->shape = &TC->tetrominos[rand() % TC->count]; // Chosing 1 of random tetrimino from the collection
+
         TD->color = randColor();
         TD->rotation = randRotation();
 
-        // Initialize position to center of screen
         TD->x = x;
         TD->y = y;
-
-        TD->shape = &TC->tetrominos[rand() % TC->count]; // Chosing 1 of random tetrimino from the collection
 }
 
 static void InitializeBlocks(SandBlock* block, int x, int y) {
@@ -77,7 +90,6 @@ bool game_init(GameContext* GC) {
         GC->renderer = renderer;
         GC->window = window;
         GC->running = true;
-        GC->redraw = true;
         GC->last_time = SDL_GetTicks();
         GC->delta_time = 0.0f;
 
@@ -86,6 +98,11 @@ bool game_init(GameContext* GC) {
         GD->gameOver = false;
         GD->level = 0;
         GD->score = 0;
+        for (int i = 0; i < GAME_HEIGHT; i++) {
+                for (int j = 0; j < GAME_HEIGHT; j++) {
+                        GD->colorGrid[i][j] = COLOR_NONE;
+                }
+        }
 
         // Initialize Collection (1 time function so inline)
         InitializeTetriminoCollection(&GD->tetrominoCollection);
@@ -113,7 +130,19 @@ void game_handle_events(GameContext* GC) {
                         case SDL_KEYDOWN: {
                                 switch (event.key.keysym.sym) {
                                         case SDLK_ESCAPE: {
-                                                GC->running = false;
+                                                if (DEBUG) {
+                                                        GC->running = false;
+                                                }
+                                                break;
+                                        }
+
+                                        case (SDLK_LEFT): {
+                                                SimulationBlock.x = SDL_clamp(SimulationBlock.x - 2, GAME_POS_X, GAME_POS_X + GAME_WIDTH);
+                                                break;
+                                        }
+
+                                        case (SDLK_RIGHT): {
+                                                SimulationBlock.x = SDL_clamp(SimulationBlock.x + 2, GAME_POS_X, GAME_POS_X + GAME_WIDTH - PARTICLE_COUNT_IN_BLOCK_COLUMN);
                                                 break;
                                         }
                                 }
@@ -122,13 +151,6 @@ void game_handle_events(GameContext* GC) {
                 }
         }
 }
-
-SandBlock SimulationBlock = {
-        .x = (GAME_POS_X + GAME_WIDTH - PARTICLE_COUNT_IN_BLOCK_COLUMN) / 2.0f,
-        .y = GAME_POS_Y + GAME_PADDING,
-        .color = COLOR_RED,
-        .velY = GRAVITY
-};
 
 void game_update(GameContext* GC) {
         SimulationBlock.velY += GRAVITY * GC->delta_time;
@@ -149,6 +171,8 @@ void game_update(GameContext* GC) {
 
 static void renderSandBlock(SDL_Renderer* renderer, SandBlock* SB) {
         // TODO: set value of color in accordance to sandblock's particle color
+        SDL_SetRenderDrawColor(renderer, unpack_color(enumToColor(SB->color)));
+
         SDL_Rect SB_Rect = {
                 .x = (int) SB->x,
                 .y = (int) SB->y,
@@ -158,33 +182,32 @@ static void renderSandBlock(SDL_Renderer* renderer, SandBlock* SB) {
         SDL_RenderFillRect(renderer, &SB_Rect);
 }
 
+static void gameRenderDebug(SDL_Renderer* renderer) {
+        if (!DEBUG) return;
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_Rect r = { 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT };
+        SDL_RenderDrawRect(renderer, &r);
+
+        r.w = (r.w / 3) * 2;
+        SDL_RenderDrawRect(renderer, &r);
+
+        r.w = GAME_WIDTH;
+        r.h = GAME_HEIGHT;
+        r.x = GAME_POS_X;
+        r.y = GAME_POS_Y;
+        SDL_RenderDrawRect(renderer, &r);
+}
+
 void game_render(GameContext* GC) {
-        if (GC->redraw) {
-                // Clear to BLACK
-                SDL_SetRenderDrawColor(GC->renderer, 0, 0, 0, 255);
-                SDL_RenderClear(GC->renderer);
+        // Clear to BLACK
+        SDL_SetRenderDrawColor(GC->renderer, 0, 0, 0, 255);
+        SDL_RenderClear(GC->renderer);
 
-                if (DEBUG) {
-                        SDL_SetRenderDrawColor(GC->renderer, 255, 0, 0, 255);
-                        SDL_Rect r = { 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT };
-                        SDL_RenderDrawRect(GC->renderer, &r);
+        gameRenderDebug(GC->renderer);
+        renderSandBlock(GC->renderer, &SimulationBlock);
 
-                        r.w = (r.w / 3) * 2;
-                        SDL_RenderDrawRect(GC->renderer, &r);
-
-                        r.w = GAME_WIDTH;
-                        r.h = GAME_HEIGHT;
-                        r.x = GAME_POS_X;
-                        r.y = GAME_POS_Y;
-                        SDL_RenderDrawRect(GC->renderer, &r);
-
-                        renderSandBlock(GC->renderer, &SimulationBlock);
-                }
-
-                // Display modified renderer
-                SDL_RenderPresent(GC->renderer);
-                GC->redraw = false;
-        }
+        // Display modified renderer
+        SDL_RenderPresent(GC->renderer);
 }
 
 void game_cleanup(GameContext* GC) {
@@ -202,30 +225,30 @@ static inline void InitializeTetriminoCollection(TetrominoCollection* TC) {
         TC->tetrominos[TC->count++] = (struct Tetromino) {
                 .name = "Line Tetrimino", // Display Name!
                 .shape = {
-                { // Rotation 1: rotation left of rotation 4
-                {0, 0, 0, 0},
-                {1, 1, 1, 1},
-                {0, 0, 0, 0},
-                {0, 0, 0, 0},
-                },
-                { // Rotation 2: rotation left of rotation 1
-                {0, 1, 0, 0},
-                {0, 1, 0, 0},
-                {0, 1, 0, 0},
-                {0, 1, 0, 0},
-                },
-                { // Rotation 3: rotation left of rotation 2
-                {0, 0, 0, 0},
-                {0, 0, 0, 0},
-                {1, 1, 1, 1},
-                {0, 0, 0, 0},
-                },
-                { // Rotation 4: rotation left of rotation 3
-                {0, 0, 1, 0},
-                {0, 0, 1, 0},
-                {0, 0, 1, 0},
-                {0, 0, 1, 0},
-                }
+        { // Rotation 1: rotation left of rotation 4
+        {0, 0, 0, 0},
+        {1, 1, 1, 1},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        },
+        { // Rotation 2: rotation left of rotation 1
+        {0, 1, 0, 0},
+        {0, 1, 0, 0},
+        {0, 1, 0, 0},
+        {0, 1, 0, 0},
+        },
+        { // Rotation 3: rotation left of rotation 2
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {1, 1, 1, 1},
+        {0, 0, 0, 0},
+        },
+        { // Rotation 4: rotation left of rotation 3
+        {0, 0, 1, 0},
+        {0, 0, 1, 0},
+        {0, 0, 1, 0},
+        {0, 0, 1, 0},
+        }
                 }
         };
         // TODO: Other Blocks
@@ -235,4 +258,61 @@ static inline void CleanUpTetriminoCollection(TetrominoCollection* TC) {
         if (TC->tetrominos != NULL) {
                 free(TC->tetrominos);
         }
+}
+
+static SDL_Color enumToColor(ColorCode CC){
+        SDL_Color color = {0};
+
+        switch (CC) {
+                case COLOR_RED: {
+                        color = (SDL_Color) {
+                                .r = 255,
+                                .g = 0,
+                                .b = 0,
+                                .a = 255
+                        };
+                        break;
+                }
+
+
+                case COLOR_GREEN: {
+                        color = (SDL_Color) {
+                                .r = 255,
+                                .g = 0,
+                                .b = 0,
+                                .a = 255
+                        };
+                        break;
+                }
+
+                case COLOR_BLUE: {
+                        color = (SDL_Color) {
+                                .r = 0,
+                                .g = 0,
+                                .b = 255,
+                                .a = 255
+                        };
+                        break;
+                }
+
+                case COLOR_NONE: {
+                        color = (SDL_Color) {
+                                .r = 0,
+                                .g = 0,
+                                .b = 0,
+                                .a = 0
+                        };
+                };
+
+                default: {
+                        color = (SDL_Color) {
+                                .r = 0,
+                                .g = 0,
+                                .b = 0,
+                                .a = 255
+                        };
+                };
+        }
+
+        return color;
 }

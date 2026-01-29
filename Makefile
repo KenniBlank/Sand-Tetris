@@ -2,7 +2,6 @@ CC = gcc
 CFLAGS = -Wall -std=c11
 CFLAGS += `sdl2-config --cflags`
 # CFLAGS += -02
-
 # CFLAGS += `pkg-config --cflags SDL2_image SDL2_ttf`
 # CFLAGS += -Wextra
 
