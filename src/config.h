@@ -2,7 +2,8 @@
 #define CONFIG_H
 
 #define DEBUG 1
-#define TARGET_FPS 60
+#define TARGET_FPS 90
+#define SAND_STEP_TIME (1.0f / 30.0f) // Define how much update in sand per frame
 
 #define SCALE_FACTOR 1
 
@@ -21,7 +22,7 @@
 #define GAME_HEIGHT (int) (VIRTUAL_HEIGHT - 2 * GAME_PADDING)
 
 // TODO: Better name cause this shit confusing!
-#define PARTICLE_COUNT_IN_BLOCK_COLUMN (10 * SCALE_FACTOR)
+#define PARTICLE_COUNT_IN_BLOCK_COLUMN (13 * SCALE_FACTOR)
 #define PARTICLE_COUNT_IN_BLOCK_ROW PARTICLE_COUNT_IN_BLOCK_COLUMN
 
 #define GRAVITY 9.8f

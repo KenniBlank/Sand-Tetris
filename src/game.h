@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdbool.h>
 #include "config.h"
 
@@ -14,6 +15,10 @@ typedef enum {
         COLOR_COUNT,
 
         COLOR_DELETE_MARKED_SAND,
+
+        COLOR_BORDER,
+        COLOR_BACKGROUND, // Background color
+        COLOR_SAND,
 
         COLOR_NONE, // Special Type!
 } ColorCode;
@@ -49,6 +54,11 @@ typedef struct {
 } TetrominoData;
 
 typedef struct {
+        char** audio_array;
+        int currently_playing;
+} AudioData;
+
+typedef struct {
         // Data on all things needed for game to function
         unsigned score, level;
 
@@ -67,6 +77,10 @@ typedef struct {
 typedef struct {
         SDL_Window *window;
         SDL_Renderer *renderer;
+
+        SDL_Texture* texture;
+        SDL_PixelFormat *pixelFormat;
+
         bool running;
 
         // Timing
