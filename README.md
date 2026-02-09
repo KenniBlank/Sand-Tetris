@@ -75,3 +75,38 @@ static inline Uint32 color_to_pixel(SDL_PixelFormat* fmt, SDL_Color c) {
 ```
 
 https://stackoverflow.com/questions/22886500/how-to-render-text-in-sdl2
+ SDL2 Installation and Setup Guide
+This guide provides instructions on how to install the Simple DirectMedia Layer (SDL2) library and compile a basic main.c program.
+
+#  Compiling and Running
+
+#  Prerequisites
+Before run the program  ensure you have a C compiler and  sdl2  installed:</br>
+
+Windows: MinGW-w64 or Visual Studio.</br>
+
+macOS: Xcode Command Line Tools (xcode-select --install).</br>
+
+Linux: gcc or clang.</br>
+
+1.  Clone the Repository</br>
+Open your terminal or command prompt and run:</br>
+
+Bash</br>
+git clone https://github.com/KenniBlank/Sand-Tetris.git
+cd Sand-Tetris</br>
+
+
+2. Compiling and Running</br>
+<Linux / macOS 🐧🍎 </br>
+Use pkg-config to automatically handle the include paths and linking:</br>
+
+Bash</br>
+gcc main.c -o my_program `sdl2-config --cflags --libs</br>
+./my_program</br>
+Windows🪟 (MinGW)</br>
+You need to manually link the libraries and include the path:</br>
+
+Bash</br>
+gcc main.c -o my_program -I/path/to/SDL2/include -L/path/to/SDL2/lib -lmingw32 -lSDL2main -lSDL2
+./my_program</br>
