@@ -473,6 +473,9 @@ static bool checkTetrominoCollision(GameData* GD, TetrominoData* TD) {
         return false;
 }
 
+// TODO
+static bool floodFillDetectAjacent(int grid[GAME_HEIGHT][GAME_WIDTH], bool visited[GAME_HEIGHT][GAME_WIDTH], int x, int y, ColorCode color);
+
 static bool floodFillDetectDiagonal(int grid[GAME_HEIGHT][GAME_WIDTH], bool visited[GAME_HEIGHT][GAME_WIDTH], int x, int y, ColorCode color) {
         // Recurive function that somehow works! (TODO: might have some edge cases, check and fix that)
         if (x < 0 || x >= GAME_WIDTH || y < 0 || y >= GAME_HEIGHT) {
@@ -487,21 +490,21 @@ static bool floodFillDetectDiagonal(int grid[GAME_HEIGHT][GAME_WIDTH], bool visi
         bool reachesRight = (x == GAME_WIDTH - 1); // check it any of the particles of same color connected have reached the end
 
         // 8 directions
-        // for (int dy = -1; dy <= 1; dy++) {
-        //         for (int dx = -1; dx <= 1; dx++) {
-        //                 if (dx == 0 && dy == 0) {
-        //                         continue;
-        //                 }
+        for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                        if (dx == 0 && dy == 0) {
+                                continue;
+                        }
 
-        //                 reachesRight =  reachesRight | floodFillDetectDiagonal(grid, visited, x + dx, y + dy, color);
-        //         }
-        // }
+                        reachesRight =  reachesRight | floodFillDetectDiagonal(grid, visited, x + dx, y + dy, color);
+                }
+        }
 
         // 4 Direction
-        if (!reachesRight) reachesRight = reachesRight || floodFillDetectDiagonal(grid, visited, x + 1, y, color); // Right
-        if (!reachesRight) reachesRight = reachesRight || floodFillDetectDiagonal(grid, visited, x - 1, y, color); // Left
-        if (!reachesRight) reachesRight = reachesRight || floodFillDetectDiagonal(grid, visited, x, y + 1, color); // Down
-        if (!reachesRight) reachesRight = reachesRight || floodFillDetectDiagonal(grid, visited, x, y - 1, color); // Up
+        // if (!reachesRight) reachesRight = reachesRight || floodFillDetectDiagonal(grid, visited, x + 1, y, color); // Right
+        // if (!reachesRight) reachesRight = reachesRight || floodFillDetectDiagonal(grid, visited, x - 1, y, color); // Left
+        // if (!reachesRight) reachesRight = reachesRight || floodFillDetectDiagonal(grid, visited, x, y + 1, color); // Down
+        // if (!reachesRight) reachesRight = reachesRight || floodFillDetectDiagonal(grid, visited, x, y - 1, color); // Up
 
         return reachesRight;
 }
@@ -890,120 +893,120 @@ static inline void InitializeTetriminoCollection(TetrominoCollection* TC) {
         TC->tetrominos[TC->count++] = (struct Tetromino) {
                 .name = "Line Tetrimino", // Display Name!
                 .shape = {
-        { // Rotation 1: rotation left of rotation 4
-        {0, 0, 0, 0},
-        {1, 1, 1, 1},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        },
-        { // Rotation 2: rotation left of rotation 1
-        {0, 1, 0, 0},
-        {0, 1, 0, 0},
-        {0, 1, 0, 0},
-        {0, 1, 0, 0},
-        },
-        { // Rotation 3: rotation left of rotation 2
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {1, 1, 1, 1},
-        {0, 0, 0, 0},
-        },
-        { // Rotation 4: rotation left of rotation 3
-        {0, 0, 1, 0},
-        {0, 0, 1, 0},
-        {0, 0, 1, 0},
-        {0, 0, 1, 0},
-        }
+                        { // Rotation 1: rotation left of rotation 4
+                                {0, 0, 0, 0},
+                                {1, 1, 1, 1},
+                                {0, 0, 0, 0},
+                                {0, 0, 0, 0},
+                        },
+                        { // Rotation 2: rotation left of rotation 1
+                                {0, 1, 0, 0},
+                                {0, 1, 0, 0},
+                                {0, 1, 0, 0},
+                                {0, 1, 0, 0},
+                        },
+                        { // Rotation 3: rotation left of rotation 2
+                                {0, 0, 0, 0},
+                                {0, 0, 0, 0},
+                                {1, 1, 1, 1},
+                                {0, 0, 0, 0},
+                        },
+                        { // Rotation 4: rotation left of rotation 3
+                                {0, 0, 1, 0},
+                                {0, 0, 1, 0},
+                                {0, 0, 1, 0},
+                                {0, 0, 1, 0},
+                        }
                 }
         };
 
         TC->tetrominos[TC->count++] = (struct Tetromino) {
                 .name = "Square Tetrimino", // Display Name!
                 .shape = {
-        { // Rotation 1: rotation left of rotation 4
-        {0, 0, 0, 0},
-        {0, 1, 1, 0},
-        {0, 1, 1, 0},
-        {0, 0, 0, 0},
-        },
-        { // Rotation 2: rotation left of rotation 1
-        {0, 0, 0, 0},
-        {0, 1, 1, 0},
-        {0, 1, 1, 0},
-        {0, 0, 0, 0},
-        },
-        { // Rotation 3: rotation left of rotation 2
-        {0, 0, 0, 0},
-        {0, 1, 1, 0},
-        {0, 1, 1, 0},
-        {0, 0, 0, 0},
-        },
-        { // Rotation 4: rotation left of rotation 3
-        {0, 0, 0, 0},
-        {0, 1, 1, 0},
-        {0, 1, 1, 0},
-        {0, 0, 0, 0},
-        }
+                        { // Rotation 1: rotation left of rotation 4
+                                {0, 0, 0, 0},
+                                {0, 1, 1, 0},
+                                {0, 1, 1, 0},
+                                {0, 0, 0, 0},
+                        },
+                        { // Rotation 2: rotation left of rotation 1
+                                {0, 0, 0, 0},
+                                {0, 1, 1, 0},
+                                {0, 1, 1, 0},
+                                {0, 0, 0, 0},
+                        },
+                        { // Rotation 3: rotation left of rotation 2
+                                {0, 0, 0, 0},
+                                {0, 1, 1, 0},
+                                {0, 1, 1, 0},
+                                {0, 0, 0, 0},
+                        },
+                        { // Rotation 4: rotation left of rotation 3
+                                {0, 0, 0, 0},
+                                {0, 1, 1, 0},
+                                {0, 1, 1, 0},
+                                {0, 0, 0, 0},
+                        }
                 }
         };
 
         TC->tetrominos[TC->count++] = (struct Tetromino) {
                 .name = "Skew Tetrimino", // Display Name!
                 .shape = {
-        { // Rotation 1: rotation left of rotation 4
-        {0, 0, 0, 0},
-        {0, 0, 1, 1},
-        {0, 1, 1, 0},
-        {0, 0, 0, 0},
-        },
-        { // Rotation 2: rotation left of rotation 1
-        {0, 1, 0, 0},
-        {0, 1, 1, 0},
-        {0, 0, 1, 0},
-        {0, 0, 0, 0},
-        },
-        { // Rotation 3: rotation left of rotation 2
-        {0, 0, 0, 0},
-        {0, 1, 1, 0},
-        {1, 1, 0, 0},
-        {0, 0, 0, 0},
-        },
-        { // Rotation 4: rotation left of rotation 3
-        {0, 0, 0, 0},
-        {0, 1, 0, 0},
-        {0, 1, 1, 0},
-        {0, 0, 1, 0},
-        }
+                        { // Rotation 1: rotation left of rotation 4
+                                {0, 0, 0, 0},
+                                {0, 0, 1, 1},
+                                {0, 1, 1, 0},
+                                {0, 0, 0, 0},
+                        },
+                        { // Rotation 2: rotation left of rotation 1
+                                {0, 1, 0, 0},
+                                {0, 1, 1, 0},
+                                {0, 0, 1, 0},
+                                {0, 0, 0, 0},
+                        },
+                        { // Rotation 3: rotation left of rotation 2
+                                {0, 0, 0, 0},
+                                {0, 1, 1, 0},
+                                {1, 1, 0, 0},
+                                {0, 0, 0, 0},
+                        },
+                        { // Rotation 4: rotation left of rotation 3
+                                {0, 0, 0, 0},
+                                {0, 1, 0, 0},
+                                {0, 1, 1, 0},
+                                {0, 0, 1, 0},
+                        }
                 }
         };
 
         TC->tetrominos[TC->count++] = (struct Tetromino) {
                 .name = "L Tetrimino", // Display Name!
                 .shape = {
-        { // Rotation 1: rotation left of rotation 4
-        {0, 0, 0, 0},
-        {0, 1, 0, 0},
-        {0, 1, 0, 0},
-        {0, 1, 1, 0},
-        },
-        { // Rotation 2: rotation left of rotation 1
-        {0, 0, 0, 0},
-        {0, 0, 0, 1},
-        {0, 1, 1, 1},
-        {0, 0, 0, 0},
-        },
-        { // Rotation 3: rotation left of rotation 2
-        {0, 1, 1, 0},
-        {0, 0, 1, 0},
-        {0, 0, 1, 0},
-        {0, 0, 0, 0},
-        },
-        { // Rotation 4: rotation left of rotation 3
-        {0, 0, 0, 0},
-        {1, 1, 1, 0},
-        {1, 0, 0, 0},
-        {0, 0, 0, 0},
-        }
+                        { // Rotation 1: rotation left of rotation 4
+                                {0, 0, 0, 0},
+                                {0, 1, 0, 0},
+                                {0, 1, 0, 0},
+                                {0, 1, 1, 0},
+                        },
+                        { // Rotation 2: rotation left of rotation 1
+                                {0, 0, 0, 0},
+                                {0, 0, 0, 1},
+                                {0, 1, 1, 1},
+                                {0, 0, 0, 0},
+                        },
+                        { // Rotation 3: rotation left of rotation 2
+                                {0, 1, 1, 0},
+                                {0, 0, 1, 0},
+                                {0, 0, 1, 0},
+                                {0, 0, 0, 0},
+                        },
+                        { // Rotation 4: rotation left of rotation 3
+                                {0, 0, 0, 0},
+                                {1, 1, 1, 0},
+                                {1, 0, 0, 0},
+                                {0, 0, 0, 0},
+                        }
                 }
         };
 
@@ -1011,30 +1014,30 @@ static inline void InitializeTetriminoCollection(TetrominoCollection* TC) {
         TC->tetrominos[TC->count++] = (struct Tetromino) {
                 .name = "T Tetrimino", // Display Name!
                 .shape = {
-        { // Rotation 1: rotation left of rotation 4
-        {0, 0, 0, 0},
-        {0, 1, 1, 1},
-        {0, 0, 1, 0},
-        {0, 0, 1, 0},
-        },
-        { // Rotation 2: rotation left of rotation 1
-        {0, 1, 0, 0},
-        {0, 1, 1, 1},
-        {0, 1, 0, 0},
-        {0, 0, 0, 0},
-        },
-        { // Rotation 3: rotation left of rotation 2
-        {0, 1, 0, 0},
-        {0, 1, 0, 0},
-        {1, 1, 1, 0},
-        {0, 0, 0, 0},
-        },
-        { // Rotation 4: rotation left of rotation 3
-        {0, 0, 0, 0},
-        {0, 0, 1, 0},
-        {1, 1, 1, 0},
-        {0, 0, 1, 0},
-        }
+                        { // Rotation 1: rotation left of rotation 4
+                                {0, 0, 0, 0},
+                                {0, 1, 1, 1},
+                                {0, 0, 1, 0},
+                                {0, 0, 1, 0},
+                        },
+                        { // Rotation 2: rotation left of rotation 1
+                                {0, 1, 0, 0},
+                                {0, 1, 1, 1},
+                                {0, 1, 0, 0},
+                                {0, 0, 0, 0},
+                        },
+                        { // Rotation 3: rotation left of rotation 2
+                                {0, 1, 0, 0},
+                                {0, 1, 0, 0},
+                                {1, 1, 1, 0},
+                                {0, 0, 0, 0},
+                        },
+                        { // Rotation 4: rotation left of rotation 3
+                                {0, 0, 0, 0},
+                                {0, 0, 1, 0},
+                                {1, 1, 1, 0},
+                                {0, 0, 1, 0},
+                        }
                 }
         };
 }
