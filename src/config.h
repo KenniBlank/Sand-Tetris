@@ -1,15 +1,14 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define DEBUG 1
+#define DEBUG 0
 #define TARGET_FPS 90
 #define SCALE_FACTOR 1
 
-#define SAND_STEP_TIME (1.0f / 45.0f) / SCALE_FACTOR // Define how much update in sand per frame
+#define SAND_STEP_TIME (1.0f / 18.0f) / SCALE_FACTOR // Define how much update in sand per frame
 
-// TODO: Change to setting.conf file to allow for change depending on display or just set it based on best for current display
-#define VIRTUAL_WIDTH 320 * SCALE_FACTOR
-#define VIRTUAL_HEIGHT 240 * SCALE_FACTOR
+#define VIRTUAL_WIDTH 240 * SCALE_FACTOR
+#define VIRTUAL_HEIGHT 230 * SCALE_FACTOR
 
 // Why this? Virtual * 4 (Magic Number!)
 #define WINDOW_WIDTH (VIRTUAL_WIDTH * 4)
@@ -31,9 +30,9 @@
 
 #define GRAVITY 9.8f
 #define TETRIMINO_MOVE_SPEED 150 * SCALE_FACTOR
-#define TIME_FOR_SAND_DELETION 0.5f
+#define TIME_FOR_SAND_DELETION 0.25f
 
-#define BASE_FONT_SIZE 64
+#define BASE_FONT_SIZE 124
 #define HIGH_SCORE_COUNT 5
 
 #define FONT_PATH "./assets/Fonts/Comfortaa.ttf"

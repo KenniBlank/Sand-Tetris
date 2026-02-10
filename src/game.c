@@ -45,7 +45,8 @@ static void InitializeTetriminoData(TetrominoCollection* TC, TetrominoData* TD) 
 
         TD->color = randColor();
         TD->rotation = randRotation();
-        TD->velY = 0;
+
+        TD->velY = GRAVITY;
 
         TD->x = 0;
         TD->y = 0;
@@ -204,19 +205,17 @@ bool game_init(GameContext* GC) {
                 .x = INFO_PANEL_X + GAME_PADDING,
                 .y = 0,
                 .w = INFO_PANEL_WIDTH - GAME_PADDING * 2,
-                .h = 10 * SCALE_FACTOR,
-                .handleW = 6 * SCALE_FACTOR,
+                .h = 7 * SCALE_FACTOR,
+                .handleW = 4 * SCALE_FACTOR,
                 .volume = DEFAULT_MUSIC_VOLUME
         };
         GC->musicSlider->handleX = GC->musicSlider->x + (GC->musicSlider->volume / 128.0f) * (GC->musicSlider->w - GC->musicSlider->handleW);
-
-        // SFX slider - simplified initialization
         *GC->sfxSlider = (AudioSlider){
                 .x = INFO_PANEL_X + GAME_PADDING,
                 .y = 0,
                 .w = INFO_PANEL_WIDTH - GAME_PADDING * 2,
-                .h = 10 * SCALE_FACTOR,
-                .handleW = 6 * SCALE_FACTOR,
+                .h = 7 * SCALE_FACTOR,
+                .handleW = 4 * SCALE_FACTOR,
                 .volume = DEFAULT_SFX_VOLUME
         };
         GC->sfxSlider->handleX = GC->sfxSlider->x + (GC->sfxSlider->volume / 128.0f) * (GC->sfxSlider->w - GC->sfxSlider->handleW);
@@ -488,15 +487,21 @@ static bool floodFillDetectDiagonal(int grid[GAME_HEIGHT][GAME_WIDTH], bool visi
         bool reachesRight = (x == GAME_WIDTH - 1); // check it any of the particles of same color connected have reached the end
 
         // 8 directions
-        for (int dy = -1; dy <= 1; dy++) {
-                for (int dx = -1; dx <= 1; dx++) {
-                        if (dx == 0 && dy == 0) {
-                                continue;
-                        }
+        // for (int dy = -1; dy <= 1; dy++) {
+        //         for (int dx = -1; dx <= 1; dx++) {
+        //                 if (dx == 0 && dy == 0) {
+        //                         continue;
+        //                 }
 
-                        reachesRight =  reachesRight | floodFillDetectDiagonal(grid, visited, x + dx, y + dy, color);
-                }
-        }
+        //                 reachesRight =  reachesRight | floodFillDetectDiagonal(grid, visited, x + dx, y + dy, color);
+        //         }
+        // }
+
+        // 4 Direction
+        if (!reachesRight) reachesRight = reachesRight || floodFillDetectDiagonal(grid, visited, x + 1, y, color); // Right
+        if (!reachesRight) reachesRight = reachesRight || floodFillDetectDiagonal(grid, visited, x - 1, y, color); // Left
+        if (!reachesRight) reachesRight = reachesRight || floodFillDetectDiagonal(grid, visited, x, y + 1, color); // Down
+        if (!reachesRight) reachesRight = reachesRight || floodFillDetectDiagonal(grid, visited, x, y - 1, color); // Up
 
         return reachesRight;
 }
@@ -832,7 +837,9 @@ void game_render(GameContext* GC) {
         // Game
         renderAllParticles(GC);
         renderTetrimino(GC->renderer, &GC->gameData.currentTetromino, false);
-        renderTetrimino(GC->renderer, &GC->gameData.ghostTetromino, true);
+        if (!GC->gameData.gameOver) {
+                renderTetrimino(GC->renderer, &GC->gameData.ghostTetromino, true);
+        }
 
         // GameOver Screen
         if (GC->gameData.gameOver) {
