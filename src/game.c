@@ -850,7 +850,10 @@ void game_render(GameContext* GC) {
         renderAllParticles(GC);
         renderTetrimino(GC->renderer, &GC->gameData.currentTetromino, false);
         if (!GC->gameData.gameOver) {
-                renderTetrimino(GC->renderer, &GC->gameData.ghostTetromino, true);
+                SDL_Rect rect = TetrominoBounds(&GC->gameData.currentTetromino);
+                if (rect.y >= GAME_POS_Y) {
+                        renderTetrimino(GC->renderer, &GC->gameData.ghostTetromino, true);
+                }
         }
 
         // GameOver Screen
