@@ -263,6 +263,10 @@ void game_handle_events(GameContext* GC) {
                                                 if (GC->gameData.gameOver) {
                                                         return;
                                                 }
+                                                if (TetrominoBounds(&GC->gameData.currentTetromino).y < GAME_POS_Y) {
+                                                        break;
+                                                }
+
                                                 GC->gameData.currentTetromino.rotation = (GC->gameData.currentTetromino.rotation + 1) % 4;
                                                 break;
                                         }
@@ -271,6 +275,9 @@ void game_handle_events(GameContext* GC) {
                                         case SDLK_s: {
                                                 if (GC->gameData.gameOver) {
                                                         return;
+                                                }
+                                                if (TetrominoBounds(&GC->gameData.currentTetromino).y < GAME_POS_Y) {
+                                                        break;
                                                 }
 
                                                 if (GC->gameData.currentTetromino.rotation > 0) {
@@ -639,7 +646,7 @@ static void renderSandBlock(SDL_Renderer* renderer, SandBlock* SB, bool ghostBlo
 
         SDL_Color borderColor = enumToColor(COLOR_DELETE_MARKED_SAND);
         if (ghostBlock) {
-                borderColor.a = 100;
+                borderColor.a = 255 - fillColor.a;
         }
         SDL_SetRenderDrawColor(renderer, unpack_color(borderColor));
         SDL_RenderDrawRect(renderer, &SB_Rect);
@@ -746,10 +753,7 @@ static void renderAllParticles(GameContext* GC) {
 
 static void renderGameUI(SDL_Renderer* renderer, GameContext* GC) {
         SDL_SetRenderDrawColor(renderer, unpack_color(enumToColor(COLOR_BORDER)));
-
-        // Outer border
-        SDL_Rect r = { 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT };
-        SDL_RenderDrawRect(renderer, &r);
+        SDL_Rect r = { .x = 0, .y = 0, .w = VIRTUAL_WIDTH, .h = VIRTUAL_HEIGHT };
 
         // Game area border
         r.w = (r.w / 3) * 2;
@@ -849,6 +853,20 @@ void game_render(GameContext* GC) {
         // Game
         renderAllParticles(GC);
         renderTetrimino(GC->renderer, &GC->gameData.currentTetromino, false);
+
+        // Hide Tetrimino outOfBoundPart
+        SDL_SetRenderDrawColor(GC->renderer, unpack_color(enumToColor(COLOR_BACKGROUND)));
+        r.x = GAME_POS_X;
+        r.y = 1;
+        r.w = GAME_WIDTH;
+        r.h = GAME_POS_Y - 2;
+        SDL_RenderFillRect(GC->renderer, &r);
+
+        // Game UI: Outermost border // Cause of order of drawing on renderer
+        SDL_SetRenderDrawColor(GC->renderer, unpack_color(enumToColor(COLOR_BORDER)));
+        r = (SDL_Rect) { .x = 0, .y = 0, .w = VIRTUAL_WIDTH, .h = VIRTUAL_HEIGHT };
+        SDL_RenderDrawRect(GC->renderer, &r);
+
         if (!GC->gameData.gameOver) {
                 SDL_Rect rect = TetrominoBounds(&GC->gameData.currentTetromino);
                 if (rect.y >= GAME_POS_Y) {
