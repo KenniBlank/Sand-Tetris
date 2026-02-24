@@ -293,6 +293,5 @@ static void audio_preload(AudioData* audio) {
 
         preload_wav(audio, SFX_COUNTER_SOUND);
         preload_wav(audio, SFX_GAME_OVER);
-        preload_wav(audio, SFX_LEVEL_UP);
         preload_wav(audio, SFX_SAND_CLEAR);
 }

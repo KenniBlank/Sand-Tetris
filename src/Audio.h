@@ -13,14 +13,13 @@
 
 #define SFX_COUNTER_SOUND "./assets/Audio/SFX/Counter_Sound.wav"
 #define SFX_GAME_OVER "./assets/Audio/SFX/Game_Over.wav"
-#define SFX_LEVEL_UP "./assets/Audio/SFX/Level_Up.wav"
 #define SFX_SAND_CLEAR "./assets/Audio/SFX/Sand_clear.wav"
-#define MAX_CACHED_SFX 4
+#define MAX_CACHED_SFX 3
 
 // Audio constants
 // 0-128
-#define DEFAULT_MUSIC_VOLUME 10
-#define DEFAULT_SFX_VOLUME 80
+#define DEFAULT_MUSIC_VOLUME 20
+#define DEFAULT_SFX_VOLUME 64
 
 // Structure to hold cached audio
 typedef struct CachedAudio {
@@ -28,7 +27,7 @@ typedef struct CachedAudio {
         Mix_Chunk* sfx;
         Mix_Music* music;
         int is_music;
-        struct CachedAudio* next;
+        struct CachedAudio* next; // Linked List
 } CachedAudio;
 
 typedef struct {

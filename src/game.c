@@ -58,7 +58,10 @@ static inline void _game_init_(GameContext* GC) {
 
         // Game Data Initialization
         GameData* GD = &GC->gameData;
+
         GD->gameOver = false;
+        GC->gameData.gamePaused = false;
+
         GD->sandRemoveTrigger = false;
         GD->score = 0;
 
@@ -93,7 +96,7 @@ bool game_init(GameContext* GC) {
 
 
         SDL_Window* window = SDL_CreateWindow(
-                "2P Sand Tetris",
+                "Sand Tetris",
                 SDL_WINDOWPOS_CENTERED,
                 SDL_WINDOWPOS_CENTERED,
                 WINDOW_WIDTH,
@@ -199,6 +202,7 @@ bool game_init(GameContext* GC) {
                 return -1;
         }
 
+        GC->gameData.gameStarted = false;
         _game_init_(GC);
 
         *GC->musicSlider = (AudioSlider){
@@ -255,12 +259,14 @@ void game_handle_events(GameContext* GC) {
                                                 if (DEBUG) {
                                                         GC->running = false;
                                                 }
+
+                                                GC->gameData.gamePaused = !GC->gameData.gamePaused;
                                                 break;
                                         }
 
                                         case SDLK_UP:
                                         case SDLK_w: {
-                                                if (GC->gameData.gameOver) {
+                                                if (GC->gameData.gameOver || GC->gameData.gameStarted == false) {
                                                         return;
                                                 }
                                                 if (TetrominoBounds(&GC->gameData.currentTetromino).y < GAME_POS_Y) {
@@ -273,7 +279,7 @@ void game_handle_events(GameContext* GC) {
 
                                         case SDLK_DOWN:
                                         case SDLK_s: {
-                                                if (GC->gameData.gameOver) {
+                                                if (GC->gameData.gameOver || GC->gameData.gameStarted == false) {
                                                         return;
                                                 }
                                                 if (TetrominoBounds(&GC->gameData.currentTetromino).y < GAME_POS_Y) {
@@ -289,7 +295,7 @@ void game_handle_events(GameContext* GC) {
                                         }
 
                                         case SDLK_SPACE: {
-                                                if (GC->gameData.gameOver) {
+                                                if (GC->gameData.gameOver || GC->gameData.gameStarted == false) {
                                                         return;
                                                 }
 
@@ -314,8 +320,9 @@ void game_handle_events(GameContext* GC) {
                 }
         }
 
-        if (GC->gameData.gameOver) {
+        if (GC->gameData.gameOver || GC->gameData.gameStarted == false) {
                 if (GC->keys[SDL_SCANCODE_RETURN] || GC->keys[SDL_SCANCODE_KP_ENTER]) {
+                        GC->gameData.gameStarted = true;
                         _game_init_(GC);
                 }
                 return;
@@ -579,6 +586,10 @@ void game_update(GameContext* GC) {
         GameData* GD = &GC->gameData;
         TetrominoData* TD = &GD->currentTetromino;
 
+        if (GD->gameStarted == false || GD->gamePaused) {
+                return;
+        }
+
         checkIfGameOver(GD);
 
         static float game_over_time = 0;
@@ -769,7 +780,9 @@ static void renderGameUI(SDL_Renderer* renderer, GameContext* GC) {
         SDL_RenderDrawRect(renderer, &r);
 
         // Render next tetromino preview
-        renderTetrimino(GC->renderer, &GC->gameData.nextTetromino, false);
+        if (GC->gameData.gameStarted) {
+                renderTetrimino(GC->renderer, &GC->gameData.nextTetromino, false);
+        }
 
         char str[256];
         SDL_Rect txtContainerRect = (SDL_Rect) {
@@ -780,7 +793,7 @@ static void renderGameUI(SDL_Renderer* renderer, GameContext* GC) {
         };
 
         // Next piece label
-        snprintf(str, sizeof(str), "Next: %s", GC->gameData.nextTetromino.shape->name);
+        snprintf(str, sizeof(str), "Next: %s", GC->gameData.gameStarted == false? "XXXX XXXXXXX": GC->gameData.nextTetromino.shape->name);
         font_render_rect(&GC->fontData, GC->renderer, str, FONT_PATH, -1, TTF_STYLE_NORMAL, enumToColor(COLOR_BORDER), txtContainerRect);
 
         txtContainerRect.y += txtContainerRect.h * 1.2f;
@@ -852,7 +865,9 @@ void game_render(GameContext* GC) {
 
         // Game
         renderAllParticles(GC);
-        renderTetrimino(GC->renderer, &GC->gameData.currentTetromino, false);
+        if (GC->gameData.gameStarted) {
+                renderTetrimino(GC->renderer, &GC->gameData.currentTetromino, false);
+        }
 
         // Hide Tetrimino outOfBoundPart
         SDL_SetRenderDrawColor(GC->renderer, unpack_color(enumToColor(COLOR_BACKGROUND)));
@@ -867,7 +882,7 @@ void game_render(GameContext* GC) {
         r = (SDL_Rect) { .x = 0, .y = 0, .w = VIRTUAL_WIDTH, .h = VIRTUAL_HEIGHT };
         SDL_RenderDrawRect(GC->renderer, &r);
 
-        if (!GC->gameData.gameOver) {
+        if (!GC->gameData.gameOver && GC->gameData.gameStarted) {
                 SDL_Rect rect = TetrominoBounds(&GC->gameData.currentTetromino);
                 if (rect.y >= GAME_POS_Y) {
                         renderTetrimino(GC->renderer, &GC->gameData.ghostTetromino, true);
@@ -875,7 +890,7 @@ void game_render(GameContext* GC) {
         }
 
         // GameOver Screen
-        if (GC->gameData.gameOver) {
+        if (GC->gameData.gameOver || GC->gameData.gameStarted == false || GC->gameData.gamePaused) {
                 char str[256];
                 SDL_Rect txtContainerRect = (SDL_Rect) {
                         .x = GAME_POS_X + GAME_PADDING,
@@ -883,17 +898,27 @@ void game_render(GameContext* GC) {
                         .w = GAME_WIDTH - GAME_PADDING * 2,
                         .h = GAME_HEIGHT / 2
                 };
+                SDL_Color color = {
+                        .r = 255,
+                        .g = (GC->gameData.gameStarted == false || GC->gameData.gamePaused)? 255: 0,
+                        .b = 255,
+                        .a = 255
+                };
 
-                snprintf(str, sizeof(str), "GAME OVER");
-                font_render_rect(&GC->fontData, GC->renderer, str, FONT_PATH, -1, TTF_STYLE_NORMAL, (SDL_Color){.r = 255, .g = 0, .b = 255, .a = 255}, txtContainerRect);
-                txtContainerRect.h -= GAME_HEIGHT / 3;
-                txtContainerRect.y += GAME_HEIGHT / 3;
-                snprintf(str, sizeof(str), "Your Score: %u", GC->gameData.score);
-                font_render_rect(&GC->fontData, GC->renderer, str, FONT_PATH, -1, TTF_STYLE_NORMAL, (SDL_Color){.r = 255, .g = 0, .b = 255, .a = 255}, txtContainerRect);
+                snprintf(str, sizeof(str), GC->gameData.gameStarted == false? "Sand Tetris": GC->gameData.gameOver? "GAME OVER": "GAME PAUSED");
+                font_render_rect(&GC->fontData, GC->renderer, str, FONT_PATH, -1, TTF_STYLE_NORMAL, color, txtContainerRect);
+
+                if (GC->gameData.gameStarted) {
+                        txtContainerRect.h -= GAME_HEIGHT / 3;
+                        txtContainerRect.y += GAME_HEIGHT / 3;
+                        snprintf(str, sizeof(str), "Your Score: %u", GC->gameData.score);
+                        font_render_rect(&GC->fontData, GC->renderer, str, FONT_PATH, -1, TTF_STYLE_NORMAL, color, txtContainerRect);
+                }
+
                 txtContainerRect.h -= GAME_PADDING * 3;
                 txtContainerRect.y += GAME_HEIGHT / 5;
-                snprintf(str, sizeof(str), "Press [Enter] to play again");
-                font_render_rect(&GC->fontData, GC->renderer, str, FONT_PATH, -1, TTF_STYLE_NORMAL, (SDL_Color){.r = 255, .g = 0, .b = 255, .a = 255}, txtContainerRect);
+                snprintf(str, sizeof(str), GC->gameData.gameStarted == false? "Press [Enter] to play": GC->gameData.gamePaused? "Press [Escape] To Play": "Press [Enter] to play again");
+                font_render_rect(&GC->fontData, GC->renderer, str, FONT_PATH, -1, TTF_STYLE_ITALIC, color, txtContainerRect);
         }
 
         // Display modified renderer

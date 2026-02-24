@@ -70,6 +70,8 @@ typedef struct {
         TetrominoData ghostTetromino;
         TetrominoData nextTetromino;
 
+        bool gameStarted;
+        bool gamePaused;
         bool gameOver;
         bool sandRemoveTrigger;
 } GameData;
