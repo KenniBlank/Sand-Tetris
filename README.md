@@ -20,23 +20,6 @@ Source Code Location: https://github.com/KenniBlank/2P-Sand-Tetris
 - Sand Clear Sound Effect by <a href="https://pixabay.com/users/freesound_community-46691455/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=95847">freesound_community</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=95847">Pixabay</a>
 - Level Up Sound Effect by <a href="https://pixabay.com/users/freesound_community-46691455/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=6768">freesound_community</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=6768">Pixabay</a>
 
-## TODO
-
-- [ ] Score, Level Implementation
-        - [ ] Difficulty increase update!
-- [X] PRIORITY: Switch to SDL_Texture for better rendering (It is closer to CPU for processing)
-- [ ] Game Loss Condition
-- [ ] Game UI Update: BG color, components...
-- [ ] Documentation
-- [ ] Score Board
-- [ ] Audio Update
-        - [ ] Game Sound
-        - [ ] Default Sound
-        - [ ] Score Sound (intensity according to score)
-- [ ] Spawn Tetrimino at the center of Screen (In accordance with bitmap) (Both!: Next and Current)
-- [ ] Better Tetrimino color (Lower the tetrimino,  higher the color (Basically saturation))
-- [ ] Sand bounce physics?
-- [ ] Network concept: update score globally
 
 # Helpful Snippets:
 
